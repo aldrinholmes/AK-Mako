@@ -83,7 +83,6 @@ static struct page_info *alloc_largest_available(unsigned long size,
 		} else {
 			gfp |= GFP_KERNEL;
 		}
-		gfp |= __GFP_ZERO;
 		page = alloc_pages(gfp, orders[i]);
 		if (!page)
 			continue;
