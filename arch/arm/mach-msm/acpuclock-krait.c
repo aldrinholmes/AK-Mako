@@ -928,6 +928,66 @@ static void __init bus_init(const struct l2_level *l2_level)
 #ifdef CONFIG_CPU_FREQ_MSM
 static struct cpufreq_frequency_table freq_table[NR_CPUS][35];
 
+#ifdef CONFIG_MSM_CPU_VOLTAGE_CONTROL
+#define CPU_VDD_MAX		1300
+#define CPU_VDD_MIN		700
+
+static unsigned int cnt;
+
+ssize_t show_UV_mV_table(struct cpufreq_policy *policy,
+					 char *buf)
+{
+	int i, len = 0;
+
+	if (!buf)
+		return -EINVAL;
+
+	for (i = 0; drv.acpu_freq_tbl[i].speed.khz; i++) {
+		if (!drv.acpu_freq_tbl[i].use_for_scaling)
+			continue;
+
+		len += sprintf(buf + len, "%lumhz: %i mV\n",
+			drv.acpu_freq_tbl[i].speed.khz / 1000,
+				drv.acpu_freq_tbl[i].vdd_core / 1000);
+	}
+	return len;
+}
+
+ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
+					 char *buf, size_t count)
+{
+	unsigned int val;
+	char size_cur[4];
+	int i, ret = 0;
+
+	if (cnt) {
+		cnt = 0;
+                return -EINVAL;
+	}
+
+	for (i = 0; i < ARRAY_SIZE(*freq_table); i++) {
+		if (!drv.acpu_freq_tbl[i].use_for_scaling)
+			continue;
+
+		ret = sscanf(buf, "%u", &val);
+		if (!ret)
+			return -EINVAL;
+
+		if (val > CPU_VDD_MAX)
+			val = CPU_VDD_MAX;
+		else if (val < CPU_VDD_MIN)
+			val = CPU_VDD_MIN;
+
+		drv.acpu_freq_tbl[i].vdd_core = val * 1000;
+
+		ret = sscanf(buf, "%s", size_cur);
+		buf += strlen(size_cur) + 1;
+		cnt = strlen(size_cur);
+	}
+	return ret;
+}
+#endif
+
 static void __init cpufreq_table_init(void)
 {
 	int cpu;
