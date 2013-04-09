@@ -811,8 +811,8 @@ unsigned long apply_slack(struct timer_list *timer, unsigned long expires)
 	mask = expires ^ expires_limit;
 	if (mask == 0)
 		return expires;
-
-	bit = find_last_bit(&mask, BITS_PER_LONG);
+	
+	bit = __fls(mask);
 
 	mask = (1 << bit) - 1;
 
