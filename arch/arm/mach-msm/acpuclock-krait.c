@@ -421,7 +421,7 @@ static int calculate_vdd_dig(const struct acpu_level *tgt)
 		   max(l2_pll_vdd_dig, cpu_pll_vdd_dig));
 }
 
-static bool enable_boost = true;
+static bool enable_boost = false;
 module_param_named(boost, enable_boost, bool, S_IRUGO | S_IWUSR);
 
 static int calculate_vdd_core(const struct acpu_level *tgt)
