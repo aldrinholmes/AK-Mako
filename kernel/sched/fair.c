@@ -4477,6 +4477,7 @@ static inline void update_sd_lb_stats(struct lb_env *env,
 	if (child && child->flags & SD_PREFER_SIBLING)
 		prefer_sibling = 1;
 
+
 	load_idx = get_sd_load_idx(env->sd, env->idle);
 
 	do {
