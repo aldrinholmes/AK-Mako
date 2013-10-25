@@ -640,7 +640,6 @@ static ssize_t store_UV_mV_table(struct cpufreq_policy *policy, const char *buf,
 
 ssize_t show_gpu_mv_table(struct cpufreq_policy *policy, char *buf)
 {
-        int modu = 0;
         return get_gpu_vdd_levels_str(buf);
 }
 
