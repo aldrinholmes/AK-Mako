@@ -380,6 +380,9 @@ enum vdd_dig_levels {
 	VDD_DIG_NUM
 };
 
+#define GPU_MIN_VDD           900000
+#define GPU_MAX_VDD          1200000
+
 static int vdd_uv[] = {
   [VDD_DIG_NONE]    =       0,
   [VDD_DIG_LOW]     =  945000,
@@ -406,7 +409,8 @@ void set_gpu_vdd_levels(int uv_tbl[])
   int i;
   for (i = 1; i <= 3; i++)
   {
-    vdd_uv[i] = uv_tbl[i - 1];
+	vdd_uv[i] = min(max(uv_tbl[i - 1],
+			GPU_MIN_VDD), GPU_MAX_VDD);
   }
 }
 
