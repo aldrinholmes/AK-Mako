@@ -432,13 +432,19 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 
 	/* Check for frequency decrease */
 	if (max_load < dbs_tuners_ins.down_threshold) {
+		unsigned int freq_target;
 		/*
 		 * if we cannot reduce the frequency anymore, break out early
 		 */
 		if (policy->cur == policy->min)
 			return;
 
-		this_dbs_info->requested_freq -= get_freq_target(policy);
+		freq_target = get_freq_target(policy);
+		if (this_dbs_info->requested_freq > freq_target)
+			this_dbs_info->requested_freq -= freq_target;
+		else
+			this_dbs_info->requested_freq = policy->min;
+
 		if (this_dbs_info->requested_freq < policy->min)
 			this_dbs_info->requested_freq = policy->min;
 
