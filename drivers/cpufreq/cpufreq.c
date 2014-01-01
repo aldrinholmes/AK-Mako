@@ -620,11 +620,19 @@ static ssize_t show_bios_limit(struct cpufreq_policy *policy, char *buf)
 }
 
 #ifdef CONFIG_MSM_CPU_VOLTAGE_CONTROL
-extern ssize_t show_UV_mV_table(struct cpufreq_policy *policy,
-					char *buf);
 
-extern ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
-					const char *buf, size_t count);
+extern ssize_t acpuclk_get_vdd_levels_str(char *buf);
+extern void acpuclk_set_vdd(const char *buf);
+
+static ssize_t show_UV_mV_table(struct cpufreq_policy *policy, char *buf) {
+	return acpuclk_get_vdd_levels_str(buf);
+}
+
+static ssize_t store_UV_mV_table(struct cpufreq_policy *policy, const char *buf, size_t count) {
+	acpuclk_set_vdd(buf);
+	return count;
+}
+
 #endif
 
 cpufreq_freq_attr_ro_perm(cpuinfo_cur_freq, 0400);
