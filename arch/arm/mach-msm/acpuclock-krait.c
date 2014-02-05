@@ -46,7 +46,7 @@
 #define PRI_SRC_SEL_HFPLL_DIV2	2
 
 #ifdef CONFIG_LOW_CPUCLOCKS
-#define FREQ_TABLE_SIZE		39
+#define FREQ_TABLE_SIZE		40
 #else
 #define FREQ_TABLE_SIZE		35
 #endif
