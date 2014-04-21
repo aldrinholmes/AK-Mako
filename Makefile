@@ -351,11 +351,14 @@ CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-CFLAGS_MODULE   =
+
+CFLAGS_MODULE   = -DMODULE -fno-pic -marm -mfpu=neon-vfpv4 \
+                  -mvectorize-with-neon-quad
 AFLAGS_MODULE   =
 LDFLAGS_MODULE  =
-CFLAGS_KERNEL	=
-AFLAGS_KERNEL	=
+CFLAGS_KERNEL	= -mtune=cortex-a15 -marm -mfpu=neon-vfpv4 -mvectorize-with-neon-quad
+AFLAGS_KERNEL	= -mfpu=neon-vfpv4 -ftree-vectorize
+
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 
 
@@ -368,11 +371,23 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
 
 KBUILD_CPPFLAGS := -D__KERNEL__
 
+#
+# AK LINARO OPT
+#
+CFLAGS_A15 = -mtune=cortex-a15 -marm -mfpu=neon-vfpv4 \
+	     -fgcse-sm -fgcse-after-reload -fgcse-las -fsched-spec-load \
+	     -ffast-math -munaligned-access -fsingle-precision-constant -fipa-pta
+CFLAGS_MODULO = -fmodulo-sched -fmodulo-sched-allow-regmoves
+CFLAGS_NOERRORS = -Werror-implicit-function-declaration -Wno-format-security -Wno-format-security \
+                  -Wno-maybe-uninitialized -Wno-sizeof-pointer-memaccess
+KERNEL_MODS	= $(CFLAGS_A15) $(CFLAGS_MODULO) $(CFLAGS_NOERRORS)
+
 KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
-		   -Werror-implicit-function-declaration \
-		   -Wno-format-security \
-		   -fno-delete-null-pointer-checks
+		   -fno-delete-null-pointer-checks \
+		   -ftree-vectorize \
+		   $(KERNEL_MODS)
+
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
