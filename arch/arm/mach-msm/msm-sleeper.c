@@ -20,6 +20,8 @@
 #include <linux/cpufreq.h>
 #include <mach/cpufreq.h>
 
+#define DEBUG 0
+
 #define MSM_SLEEPER_MAJOR_VERSION	1
 #define MSM_SLEEPER_MINOR_VERSION	1
 
@@ -35,7 +37,9 @@ static void msm_sleeper_early_suspend(struct early_suspend *h)
 	if (maxscroff) {
 		for_each_possible_cpu(cpu) {
 			msm_cpufreq_set_freq_limits(cpu, MSM_CPUFREQ_NO_LIMIT, maxscroff_freq);
+#ifdef DEBUG
 			pr_info("msm-sleeper: limit max frequency to: %d\n", maxscroff_freq);
+#endif
 		}
 		limit_set = 1;
 	}
@@ -51,7 +55,9 @@ static void msm_sleeper_late_resume(struct early_suspend *h)
 
 	for_each_possible_cpu(cpu) {
 		msm_cpufreq_set_freq_limits(cpu, MSM_CPUFREQ_NO_LIMIT, MSM_CPUFREQ_NO_LIMIT);
+#ifdef DEBUG
 		pr_info("msm-sleeper: restore max frequency.\n");
+#endif
 	}
 	limit_set = 0;
 	return; 
