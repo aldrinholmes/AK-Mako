@@ -47,7 +47,7 @@ static struct scalable scalable[] __initdata = {
 		.aux_clk_sel = 3,
 		.sec_clk_sel = 2,
 		.l2cpmr_iaddr = 0x4501,
-#ifdef CONFIG_CPU_OVERCLOCK
+#ifdef CONFIG_CPU_OVERCLOCK_ULTRA
 		.vreg[VREG_CORE] = { "krait0", 1450000 },
 #else
 		.vreg[VREG_CORE] = { "krait0", 1300000 },
@@ -62,7 +62,7 @@ static struct scalable scalable[] __initdata = {
 		.aux_clk_sel = 3,
 		.sec_clk_sel = 2,
 		.l2cpmr_iaddr = 0x5501,
-#ifdef CONFIG_CPU_OVERCLOCK
+#ifdef CONFIG_CPU_OVERCLOCK_ULTRA
 		.vreg[VREG_CORE] = { "krait1", 1450000 },
 #else
 		.vreg[VREG_CORE] = { "krait1", 1300000 },
@@ -77,7 +77,7 @@ static struct scalable scalable[] __initdata = {
 		.aux_clk_sel = 3,
 		.sec_clk_sel = 2,
 		.l2cpmr_iaddr = 0x6501,
-#ifdef CONFIG_CPU_OVERCLOCK
+#ifdef CONFIG_CPU_OVERCLOCK_ULTRA
 		.vreg[VREG_CORE] = { "krait2", 1450000 },
 #else
 		.vreg[VREG_CORE] = { "krait2", 1300000 },
@@ -92,7 +92,7 @@ static struct scalable scalable[] __initdata = {
 		.aux_clk_sel = 3,
 		.sec_clk_sel = 2,
 		.l2cpmr_iaddr = 0x7501,
-#ifdef CONFIG_CPU_OVERCLOCK
+#ifdef CONFIG_CPU_OVERCLOCK_ULTRA
 		.vreg[VREG_CORE] = { "krait3", 1450000 },
 #else
 		.vreg[VREG_CORE] = { "krait3", 1300000 },
@@ -211,6 +211,8 @@ static struct acpu_level tbl_slow[] __initdata = {
 #ifdef CONFIG_CPU_OVERCLOCK
 	{ 1, {  1620000, HFPLL, 1, 0x3C }, L2(15), 1300000 },
 	{ 1, {  1728000, HFPLL, 1, 0x40 }, L2(15), 1350000 },
+#endif
+#ifdef CONFIG_CPU_OVERCLOCK_ULTRA
 	{ 1, {  1836000, HFPLL, 1, 0x44 }, L2(15), 1400000 },
 	{ 1, {  1890000, HFPLL, 1, 0x45 }, L2(15), 1425000 },
 	{ 1, {  1944000, HFPLL, 1, 0x46 }, L2(15), 1450000 },
@@ -251,6 +253,8 @@ static struct acpu_level tbl_nom[] __initdata = {
 #ifdef CONFIG_CPU_OVERCLOCK
 	{ 1, {  1620000, HFPLL, 1, 0x3C }, L2(15), 1250000 },
 	{ 1, {  1728000, HFPLL, 1, 0x40 }, L2(15), 1300000 },
+#endif
+#ifdef CONFIG_CPU_OVERCLOCK_ULTRA
 	{ 1, {  1836000, HFPLL, 1, 0x44 }, L2(15), 1350000 },
 	{ 1, {  1890000, HFPLL, 1, 0x45 }, L2(15), 1375000 },
 	{ 1, {  1944000, HFPLL, 1, 0x46 }, L2(15), 1400000 },
@@ -291,6 +295,8 @@ static struct acpu_level tbl_fast[] __initdata = {
 #ifdef CONFIG_CPU_OVERCLOCK
 	{ 1, {  1620000, HFPLL, 1, 0x3C }, L2(15), 1200000 },
 	{ 1, {  1728000, HFPLL, 1, 0x40 }, L2(15), 1250000 },
+#endif
+#ifdef CONFIG_CPU_OVERCLOCK_ULTRA
 	{ 1, {  1836000, HFPLL, 1, 0x44 }, L2(15), 1300000 },
 	{ 1, {  1890000, HFPLL, 1, 0x45 }, L2(15), 1325000 },
 	{ 1, {  1944000, HFPLL, 1, 0x46 }, L2(15), 1350000 },
@@ -331,6 +337,8 @@ static struct acpu_level tbl_faster[] __initdata = {
 #ifdef CONFIG_CPU_OVERCLOCK
 	{ 1, {  1620000, HFPLL, 1, 0x3C }, L2(15), 1150000 },
 	{ 1, {  1728000, HFPLL, 1, 0x40 }, L2(15), 1200000 },
+#endif
+#ifdef CONFIG_CPU_OVERCLOCK_ULTRA
 	{ 1, {  1836000, HFPLL, 1, 0x44 }, L2(15), 1250000 },
 	{ 1, {  1890000, HFPLL, 1, 0x45 }, L2(15), 1275000 },
 	{ 1, {  1944000, HFPLL, 1, 0x46 }, L2(15), 1300000 },
