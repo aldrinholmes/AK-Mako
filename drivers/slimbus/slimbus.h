@@ -295,15 +295,15 @@ enum slim_ch_proto {
 /*
  * enum slim_ch_rate: Most commonly used frequency rate families.
  * Use 1HZ for push-pull transport.
- * 4KHz and 11.025KHz are most commonly used in audio applications.
- * Typically, slimbus runs at frequencies to support channels running at 4KHz
- * and/or 11.025KHz isochronously.
+ * 44.1KHz and 48KHz are most commonly used in audio applications.
+ * Typically, slimbus runs at frequencies to support channels running at 44.1KHz
+ * and/or 48KHz isochronously.
+ * We want to force these values to match the majority of audio played by users. 
  */
 enum slim_ch_rate {
 	SLIM_RATE_1HZ,
-	SLIM_RATE_4000HZ,
-	SLIM_RATE_11025HZ,
-};
+	SLIM_RATE_44100HZ,
+	SLIM_RATE_48000HZ
 
 /*
  * enum slim_ch_coeff: Coefficient of a channel used internally by framework.
