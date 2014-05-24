@@ -952,7 +952,7 @@ config CC_GRAPHITE_OPTIMIZATION
 	help
 	  Enabling this option will turn on graphite optimizations.
 
-	If unsure, say N.
+	  If unsure, say N.
 
 config SYSCTL
 	bool
