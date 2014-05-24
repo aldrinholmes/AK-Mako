@@ -243,10 +243,10 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 	  else if [ -x /bin/bash ]; then echo /bin/bash; \
 	  else echo sh; fi ; fi)
 
-HOSTCC       = gcc
-HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer
-HOSTCXXFLAGS = -O2
+HOSTCC       = $(CCACHE) gcc
+HOSTCXX      = $(CCACHE) g++
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fomit-frame-pointer -fgcse-las
+HOSTCXXFLAGS = -O3 -fgcse-las
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -351,13 +351,11 @@ CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-
-CFLAGS_MODULE   = -DMODULE -fno-pic -mtune=cortex-a15 -marm -ffast-math -mfpu=neon-vfpv4 -mvectorize-with-neon-quad
+CFLAGS_MODULE   = -DMODULE -fno-pic -mtune=cortex-a15 -marm -ffast-math -mfpu=neon-vfpv4 -mvectorize-with-neon-quad -fgcse-las
 AFLAGS_MODULE   =
 LDFLAGS_MODULE  =
-CFLAGS_KERNEL	= -mtune=cortex-a15 -marm -ffast-math -mfpu=neon-vfpv4 -mvectorize-with-neon-quad
-AFLAGS_KERNEL	= -mtune=cortex-a15 -marm -ffast-math -mfpu=neon-vfpv4 -mvectorize-with-neon-quad
-
+CFLAGS_KERNEL	= -mtune=cortex-a15 -marm -ffast-math -mfpu=neon-vfpv4 -mvectorize-with-neon-quad -fgcse-las
+AFLAGS_KERNEL	= -mtune=cortex-a15 -marm -ffast-math -mfpu=neon-vfpv4 -mvectorize-with-neon-quad -fgcse-las
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 
 
