@@ -27,6 +27,7 @@
 #include <linux/time.h>
 
 struct cpu_sync {
+	wait_queue_head_t sync_wq;
 	struct delayed_work boost_rem;
 	struct delayed_work input_boost_rem;
 	int cpu;
@@ -234,6 +235,7 @@ static int boost_migration_notify(struct notifier_block *nb,
 	s->src_cpu = mnd->src_cpu;
 	s->task_load = load_based_syncs ? mnd->load : 0;
 	spin_unlock_irqrestore(&s->lock, flags);
+	wake_up(&s->sync_wq);
 
 	return NOTIFY_OK;
 }
@@ -374,6 +376,7 @@ static int cpu_boost_init(void)
 	for_each_possible_cpu(cpu) {
 		s = &per_cpu(sync_info, cpu);
 		s->cpu = cpu;
+		init_waitqueue_head(&s->sync_wq);
 		spin_lock_init(&s->lock);
 		INIT_DELAYED_WORK(&s->boost_rem, do_boost_rem);
 		INIT_DELAYED_WORK(&s->input_boost_rem, do_input_boost_rem);
