@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -17,7 +17,6 @@
 #include <linux/init.h>
 #include <linux/notifier.h>
 #include <linux/cpufreq.h>
-#include <linux/cpu.h>
 #include <linux/sched.h>
 #include <linux/jiffies.h>
 #include <linux/smpboot.h>
@@ -175,26 +174,10 @@ static void run_boost_migration(unsigned int cpu)
 	}
 
 	/* Force policy re-evaluation to trigger adjust notifier. */
-	get_online_cpus();
-	if (cpu_online(src_cpu))
-		/*
-		 * Send an unchanged policy update to the source
-		 * CPU. Even though the policy isn't changed from
-		 * its existing boosted or non-boosted state
-		 * notifying the source CPU will let the governor
-		 * know a boost happened on another CPU and that it
-		 * should re-evaluate the frequency at the next timer
-		 * event without interference from a min sample time.
-		 */
-		cpufreq_update_policy(src_cpu);
-	if (cpu_online(dest_cpu)) {
-		cpufreq_update_policy(dest_cpu);
-		queue_delayed_work_on(dest_cpu, cpu_boost_wq,
-			&s->boost_rem, msecs_to_jiffies(boost_ms));
-	} else {
-		s->boost_min = 0;
-	}
-	put_online_cpus();
+	cpufreq_update_policy(dest_cpu);
+	queue_delayed_work_on(s->cpu, cpu_boost_wq,
+		&s->boost_rem, msecs_to_jiffies(boost_ms));
+
 }
 
 static struct smp_hotplug_thread cpuboost_threads = {
@@ -250,7 +233,6 @@ static void do_input_boost(struct work_struct *work)
 	struct cpu_sync *i_sync_info;
 	struct cpufreq_policy policy;
 
-	get_online_cpus();
 	for_each_online_cpu(i) {
 
 		i_sync_info = &per_cpu(sync_info, i);
@@ -267,7 +249,6 @@ static void do_input_boost(struct work_struct *work)
 			&i_sync_info->input_boost_rem,
 			msecs_to_jiffies(input_boost_ms));
 	}
-	put_online_cpus();
 }
 
 static void cpuboost_input_event(struct input_handle *handle,
