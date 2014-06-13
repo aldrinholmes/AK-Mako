@@ -155,21 +155,23 @@ static void run_boost_migration(unsigned int cpu)
 	if (ret)
 		return;
 
-	req_freq = load_based_syncs ?
-			(dest_policy.cpuinfo.max_freq * s->task_load) / 100 :
-								src_policy.cur;
-
-	if (req_freq <= dest_policy.cpuinfo.min_freq) {
-	    pr_debug("No sync. Sync Freq:%u\n", req_freq);
-	    return;
+	if (src_policy.min == src_policy.cur &&
+			src_policy.min <= dest_policy.min) {
+		pr_debug("No sync. CPU%d@%dKHz == min freq@%dKHz\n",
+			src_cpu, src_policy.cur,
+			src_policy.min);
+		return;
 	}
 
-	if (sync_threshold)
-		req_freq = min(sync_threshold, req_freq);
-
 	cancel_delayed_work_sync(&s->boost_rem);
-
-	s->boost_min = req_freq;
+	if (sync_threshold) {
+		if (src_policy.cur >= sync_threshold)
+			s->boost_min = sync_threshold;
+		else
+			s->boost_min = src_policy.cur;
+	} else {
+		s->boost_min = src_policy.cur;
+	}
 
 	/* Force policy re-evaluation to trigger adjust notifier. */
 	get_online_cpus();
