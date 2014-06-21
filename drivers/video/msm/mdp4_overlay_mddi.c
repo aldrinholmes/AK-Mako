@@ -162,7 +162,6 @@ void mdp4_overlay_update_lcd(struct msm_fb_data_type *mfd)
 			 (MDDI_VDO_PACKET_DESC << 16) | mddi_vdo_packet_reg);
 
 		MDP_OUTP(MDP_BASE + 0x00098, 0x01);
-		mdp4_init_writeback_buf(mfd, MDP4_MIXER0);
 		pipe->ov_blt_addr = 0;
 		pipe->dma_blt_addr = 0;
 	} else {
