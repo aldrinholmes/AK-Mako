@@ -33,7 +33,7 @@
 #define fb_height(fb)	((fb)->var.yres)
 #define fb_depth(fb)	((fb)->var.bits_per_pixel >> 3)
 #define fb_size(fb)	(fb_width(fb) * fb_height(fb) * fb_depth(fb))
-#define INIT_IMAGE_FILE "/initlogo.rle"
+#define INIT_IMAGE_FILE "/aklogo.rle"
 
 static void memset16(void *_ptr, unsigned short val, unsigned count)
 {
