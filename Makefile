@@ -351,14 +351,14 @@ CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-CFLAGS_MODULE   = -DMODULE -fno-pic -mtune=cortex-a15 -marm -ffast-math -mfpu=neon-vfpv4 -mvectorize-with-neon-quad -fgcse-las
+CFLAGS_MODULE   = -DMODULE -fno-pic -mtune=cortex-a15 -marm -mfpu=neon-vfpv4 -mvectorize-with-neon-quad -fgcse-las
 AFLAGS_MODULE   =
 LDFLAGS_MODULE  =
-CFLAGS_KERNEL	= -mtune=cortex-a15 -marm -ffast-math -mfpu=neon-vfpv4 -mvectorize-with-neon-quad -fgcse-las
+CFLAGS_KERNEL	= -mtune=cortex-a15 -marm -mfpu=neon-vfpv4 -mvectorize-with-neon-quad -fgcse-las
 ifdef CONFIG_CC_GRAPHITE_OPTIMIZATION
 CFLAGS_KERNEL += -fgraphite-identity -floop-parallelize-all -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block
 endif
-AFLAGS_KERNEL	= -mtune=cortex-a15 -marm -ffast-math -mfpu=neon-vfpv4 -mvectorize-with-neon-quad -fgcse-las
+AFLAGS_KERNEL	= -mtune=cortex-a15 -marm -mfpu=neon-vfpv4 -mvectorize-with-neon-quad -fgcse-las
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 
 
@@ -376,11 +376,10 @@ KBUILD_CPPFLAGS := -D__KERNEL__
 #
 CFLAGS_A15 = -mtune=cortex-a15 -marm -mfpu=neon-vfpv4 -fgcse-las \
 	     -fgcse-sm -fgcse-after-reload -fgcse-las -fsched-spec-load \
-	     -ffast-math -munaligned-access -fsingle-precision-constant -fipa-pta
+	     -munaligned-access -fsingle-precision-constant -fipa-pta
 CFLAGS_MODULO = -fmodulo-sched -fmodulo-sched-allow-regmoves
-CFLAGS_NOERRORS = -Werror-implicit-function-declaration -Wno-format-security -Wno-format-security \
                   -Wno-maybe-uninitialized -Wno-sizeof-pointer-memaccess
-KERNEL_MODS	= $(CFLAGS_A15) $(CFLAGS_MODULO) $(CFLAGS_NOERRORS)
+KERNEL_MODS	= $(CFLAGS_A15) $(CFLAGS_MODULO)
 
 KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
