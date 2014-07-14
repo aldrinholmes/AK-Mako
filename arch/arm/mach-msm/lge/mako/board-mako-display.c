@@ -116,6 +116,8 @@ struct kcal_data kcal_value;
 extern int g_kcal_min;
 extern int down_kcal, up_kcal;
 
+extern void sweep2wake_pwrtrigger(void);
+
 #endif
 
 #ifdef CONFIG_UPDATE_LCDC_LUT
@@ -323,12 +325,15 @@ void kcal_send_s2d(int set)
 	}
 
 	if (set == 2) {
+		if ((r == 255) && (g == 255) && (b == 255))
+			return;
+
 		r = r + up_kcal;
 		g = g + up_kcal;
 		b = b + up_kcal;
 	}
 
-	if ((r < g_kcal_min) && (g < g_kcal_min) && (b < g_kcal_min))
+	if ((r < 1) && (g < 1) && (b < 1))
 		sweep2wake_pwrtrigger();
 
 	kcal_set_values(r, g, b);
