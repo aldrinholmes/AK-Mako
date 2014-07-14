@@ -27,4 +27,6 @@ extern int s2d_enabled;
 extern int down_kcal, up_kcal;
 extern void kcal_send_s2d(int set);
 
+extern void sweep2wake_pwrtrigger(void);
+
 #endif	/* _LINUX_SWEEP2WAKE_H */
