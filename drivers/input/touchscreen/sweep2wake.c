@@ -67,9 +67,17 @@ MODULE_LICENSE("GPLv2");
 /* Mako aka Nexus 4 */
 #define S2W_Y_LIMIT             2350
 #define S2W_X_MAX               1540
-#define S2W_X_B1                500
-#define S2W_X_B2                1000
 #define S2W_X_FINAL             300
+
+/* Right -> Left */
+#define S2W_X_B0		1200
+#define S2W_X_B1		S2W_X_B0-700
+#define S2W_X_B2		S2W_X_B0-200
+
+/* Left -> Right */
+#define S2W_X_B3		S2W_X_B0+120
+#define S2W_X_B4		S2W_X_MAX-90
+#define S2W_X_B5		S2W_X_MAX-S2W_X_B0
 #elif defined(CONFIG_MACH_APQ8064_FLO)
 /* Flo/Deb aka Nexus 7 2013 */
 #define S2W_Y_MAX               2240
@@ -94,6 +102,7 @@ static int touch_x = 0, touch_y = 0;
 static bool touch_x_called = false, touch_y_called = false;
 static bool scr_suspended = false, exec_count = true;
 static bool scr_on_touch = false, barrier[2] = {false, false};
+static bool r_barrier[2] = {false, false};
 #ifndef CONFIG_HAS_EARLYSUSPEND
 static struct notifier_block s2w_lcd_notif;
 #endif
@@ -144,6 +153,8 @@ static void sweep2wake_reset(void) {
 	exec_count = true;
 	barrier[0] = false;
 	barrier[1] = false;
+	r_barrier[0] = false;
+	r_barrier[1] = false;
 	scr_on_touch = false;
 }
 
@@ -151,6 +162,7 @@ static void sweep2wake_reset(void) {
 static void detect_sweep2wake(int x, int y, bool st)
 {
         int prevx = 0, nextx = 0;
+	int r_prevx = 0, r_nextx = 0;
         bool single_touch = st;
 #if S2W_DEBUG
         pr_info(LOGTAG"x,y(%4d,%4d) single:%s\n",
@@ -206,6 +218,33 @@ static void detect_sweep2wake(int x, int y, bool st)
 				if ((x < prevx) &&
 				    (y > S2W_Y_LIMIT)) {
 					if (x < S2W_X_FINAL) {
+						if (exec_count) {
+							pr_info(LOGTAG"OFF\n");
+							sweep2wake_pwrtrigger();
+							exec_count = false;
+						}
+					}
+				}
+			}
+		}
+		r_prevx = S2W_X_B0;
+		r_nextx = S2W_X_B3;
+		if ((r_barrier[0] == true) ||
+		   ((x > r_prevx) &&
+		    (x < r_nextx) &&
+		    (y > S2W_Y_LIMIT))) {
+			r_prevx = r_nextx;
+			r_nextx = S2W_X_B4;
+			r_barrier[0] = true;
+			if ((r_barrier[1] == true) ||
+			   ((x > r_prevx) &&
+			    (x < r_nextx) &&
+			    (y > S2W_Y_LIMIT))) {
+				r_prevx = r_nextx;
+				r_barrier[1] = true;
+				if ((x > r_prevx) &&
+				    (y > S2W_Y_LIMIT)) {
+					if (x > S2W_X_B5) {
 						if (exec_count) {
 							pr_info(LOGTAG"OFF\n");
 							sweep2wake_pwrtrigger();
