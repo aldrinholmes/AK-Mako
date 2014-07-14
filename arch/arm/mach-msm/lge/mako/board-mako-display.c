@@ -29,6 +29,7 @@
 #include <mach/ion.h>
 #include <mach/msm_bus_board.h>
 #include <mach/socinfo.h>
+#include <linux/input/sweep2wake.h>
 
 #include <msm/msm_fb.h>
 #include <msm/msm_fb_def.h>
@@ -103,7 +104,18 @@ static int msm_fb_detect_panel(const char *name)
 }
 
 #ifdef CONFIG_LCD_KCAL
+
+struct kcal_data kcal_value = {
+	.red   = 255,
+	.green = 255,
+	.blue  = 255,
+};
+
 struct kcal_data kcal_value;
+
+extern int g_kcal_min;
+extern int down_kcal, up_kcal;
+
 #endif
 
 #ifdef CONFIG_UPDATE_LCDC_LUT
@@ -294,6 +306,32 @@ static int kcal_get_values(int *kcal_r, int *kcal_g, int *kcal_b)
 static int kcal_refresh_values(void)
 {
 	return update_preset_lcdc_lut();
+}
+
+void kcal_send_s2d(int set)
+{
+	int r, g, b;
+
+	r = kcal_value.red;
+	g = kcal_value.green;
+	b = kcal_value.blue;
+
+	if (set == 1) {
+		r = r - down_kcal;
+		g = g - down_kcal;
+		b = b - down_kcal;
+	}
+
+	if (set == 2) {
+		r = r + up_kcal;
+		g = g + up_kcal;
+		b = b + up_kcal;
+	}
+
+	kcal_set_values(r, g, b);
+	update_preset_lcdc_lut();
+
+	return;
 }
 
 static struct kcal_platform_data kcal_pdata = {
