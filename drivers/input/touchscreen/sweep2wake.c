@@ -178,65 +178,8 @@ static void detect_sweep2wake(int x, int y, bool st)
 	if (s2w_switch > 1 && s2d_enabled)
 		s2d_enabled = 0;
 
-	// s2w: left->right
-	if ((single_touch) && (scr_suspended == true) && (s2w_switch == 1)) {
-		prevx = 0;
-		nextx = S2W_X_B1;
-		if ((barrier[0] == true) ||
-		   ((x > prevx) &&
-		    (x < nextx) &&
-		    (y > 0))) {
-			prevx = nextx;
-			nextx = S2W_X_B2;
-			barrier[0] = true;
-			if ((barrier[1] == true) ||
-			   ((x > prevx) &&
-			    (x < nextx) &&
-			    (y > 0))) {
-				prevx = nextx;
-				barrier[1] = true;
-				if ((x > prevx) &&
-				    (y > 0)) {
-					if (x > (S2W_X_MAX - S2W_X_FINAL)) {
-						if (exec_count) {
-							pr_info(LOGTAG"ON\n");
-							sweep2wake_pwrtrigger();
-							exec_count = false;
-						}
-					}
-				}
-			}
-		}
-		// s2w: right->left
-		r_prevx = (S2W_X_MAX - S2W_X_FINAL);
-		r_nextx = S2W_X_B2;
-		if ((r_barrier[0] == true) ||
-		   ((x < r_prevx) &&
-		    (x > r_nextx) &&
-		    (y < S2W_Y_LIMIT))) {
-			r_prevx = r_nextx;
-			r_nextx = S2W_X_B1;
-			r_barrier[0] = true;
-			if ((r_barrier[1] == true) ||
-			   ((x < r_prevx) &&
-			    (x > r_nextx) &&
-			    (y < S2W_Y_LIMIT))) {
-				r_prevx = r_nextx;
-				r_barrier[1] = true;
-				if ((x < r_prevx) &&
-				    (y < S2W_Y_LIMIT)) {
-					if (x < S2W_X_FINAL) {
-						if (exec_count) {
-							pr_info(LOGTAG"ON\n");
-							sweep2wake_pwrtrigger();
-							exec_count = false;
-						}
-					}
-				}
-			}
-		}
 	// s2s: right->left
-	} else if ((single_touch) && (scr_suspended == false) && (s2w_switch > 0) && (s2d_enabled == 0)) {
+	if ((single_touch) && (scr_suspended == false) && (s2w_switch > 0) && (s2d_enabled == 0)) {
 		scr_on_touch=true;
 		prevx = (S2W_X_MAX - S2W_X_FINAL);
 		nextx = S2W_X_B2;
@@ -505,7 +448,7 @@ static ssize_t s2w_sweep2wake_show(struct device *dev,
 static ssize_t s2w_sweep2wake_dump(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
-	if (buf[0] >= '0' && buf[0] <= '2' && buf[1] == '\n')
+	if (buf[0] >= '0' && buf[0] <= '2' && buf[1] == '\n' && buf[0] != '1')
                 if (s2w_switch != buf[0] - '0')
 		        s2w_switch = buf[0] - '0';
 
