@@ -328,6 +328,9 @@ void kcal_send_s2d(int set)
 		b = b + up_kcal;
 	}
 
+	if ((r < g_kcal_min) && (g < g_kcal_min) && (b < g_kcal_min))
+		sweep2wake_pwrtrigger();
+
 	kcal_set_values(r, g, b);
 	update_preset_lcdc_lut();
 
