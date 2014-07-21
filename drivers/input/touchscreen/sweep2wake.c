@@ -3,6 +3,7 @@
  *
  *
  * Copyright (c) 2013, Dennis Rassmann <showp1984@gmail.com>
+ * Copyright (c) 2014, savoca <adeddo27@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +43,7 @@
 /* Version, author, desc, etc */
 #define DRIVER_AUTHOR "Dennis Rassmann <showp1984@gmail.com>"
 #define DRIVER_DESCRIPTION "Sweep2wake for almost any device"
-#define DRIVER_VERSION "1.5"
+#define DRIVER_VERSION "0"
 #define LOGTAG "[sweep2wake]: "
 
 MODULE_AUTHOR(DRIVER_AUTHOR);
@@ -55,15 +56,6 @@ MODULE_LICENSE("GPLv2");
 #define S2W_DEFAULT		0
 #define S2W_PWRKEY_DUR          60
 
-#ifdef CONFIG_MACH_MSM8974_HAMMERHEAD
-/* Hammerhead aka Nexus 5 */
-#define S2W_Y_MAX               1920
-#define S2W_X_MAX               1080
-#define S2W_Y_LIMIT             S2W_Y_MAX-130
-#define S2W_X_B1                400
-#define S2W_X_B2                700
-#define S2W_X_FINAL             250
-#elif defined(CONFIG_MACH_APQ8064_MAKO)
 /* Mako aka Nexus 4 */
 #define S2W_Y_LIMIT             2350
 #define S2W_X_MAX               1540
@@ -78,23 +70,6 @@ MODULE_LICENSE("GPLv2");
 #define S2W_X_B3		S2W_X_B0+120
 #define S2W_X_B4		S2W_X_MAX-90
 #define S2W_X_B5		S2W_X_MAX-S2W_X_B0
-#elif defined(CONFIG_MACH_APQ8064_FLO)
-/* Flo/Deb aka Nexus 7 2013 */
-#define S2W_Y_MAX               2240
-#define S2W_X_MAX               1344
-#define S2W_Y_LIMIT             S2W_Y_MAX-110
-#define S2W_X_B1                500
-#define S2W_X_B2                700
-#define S2W_X_FINAL             450
-#else
-/* defaults */
-#define S2W_Y_LIMIT             2350
-#define S2W_X_MAX               1540
-#define S2W_X_B1                500
-#define S2W_X_B2                1000
-#define S2W_X_FINAL             300
-#endif
-
 
 /* Resources */
 int s2w_switch = S2W_DEFAULT;
@@ -116,22 +91,6 @@ int down_kcal = 50;
 module_param(down_kcal, int, 0664);
 int up_kcal = 50;
 module_param(up_kcal, int, 0644);
-
-/* Read cmdline for s2w */
-static int __init read_s2w_cmdline(char *s2w)
-{
-	if (strcmp(s2w, "1") == 0) {
-		pr_info("[cmdline_s2w]: Sweep2Wake enabled. | s2w='%s'\n", s2w);
-		s2w_switch = 1;
-	} else if (strcmp(s2w, "0") == 0) {
-		pr_info("[cmdline_s2w]: Sweep2Wake disabled. | s2w='%s'\n", s2w);
-		s2w_switch = 0;
-	} else {
-		pr_info("[cmdline_s2w]: No valid input found. Going with default: | s2w='%u'\n", s2w_switch);
-	}
-	return 1;
-}
-__setup("s2w=", read_s2w_cmdline);
 
 /* PowerKey work func */
 static void sweep2wake_presspwr(struct work_struct * sweep2wake_presspwr_work) {
@@ -170,16 +129,12 @@ static void detect_sweep2wake(int x, int y, bool st)
         int prevx = 0, nextx = 0;
 	int r_prevx = 0, r_nextx = 0;
         bool single_touch = st;
-#if S2W_DEBUG
-        pr_info(LOGTAG"x,y(%4d,%4d) single:%s\n",
-                x, y, (single_touch) ? "true" : "false");
-#endif
 
-	if (s2w_switch > 1 && s2d_enabled)
+	if (s2w_switch && s2d_enabled)
 		s2d_enabled = 0;
 
 	// s2s: right->left
-	if ((single_touch) && (scr_suspended == false) && (s2w_switch > 0) && (s2d_enabled == 0)) {
+	if ((single_touch) && (scr_suspended == false) && ((s2w_switch) || (s2d_enabled))) {
 		scr_on_touch=true;
 		prevx = (S2W_X_MAX - S2W_X_FINAL);
 		nextx = S2W_X_B2;
@@ -200,8 +155,11 @@ static void detect_sweep2wake(int x, int y, bool st)
 				    (y > S2W_Y_LIMIT)) {
 					if (x < S2W_X_FINAL) {
 						if (exec_count) {
-							pr_info(LOGTAG"OFF\n");
-							sweep2wake_pwrtrigger();
+							pr_info(LOGTAG"EXEC_COUNT\n");
+							if (s2d_enabled)
+								kcal_send_s2d(1);
+							else
+								sweep2wake_pwrtrigger();
 							exec_count = false;
 						}
 					}
@@ -228,66 +186,11 @@ static void detect_sweep2wake(int x, int y, bool st)
 				    (y > S2W_Y_LIMIT)) {
 					if (x > S2W_X_B5) {
 						if (exec_count) {
-							pr_info(LOGTAG"OFF\n");
-							sweep2wake_pwrtrigger();
-							exec_count = false;
-						}
-					}
-				}
-			}
-		}
-	// s2d: right->left
-	}  else if ((single_touch) && (scr_suspended == false) && (s2d_enabled == 1)) {
-		scr_on_touch=true;
-		prevx = (S2W_X_MAX - S2W_X_FINAL);
-		nextx = S2W_X_B2;
-		if ((barrier[0] == true) ||
-		   ((x < prevx) &&
-		    (x > nextx) &&
-		    (y > S2W_Y_LIMIT))) {
-			prevx = nextx;
-			nextx = S2W_X_B1;
-			barrier[0] = true;
-			if ((barrier[1] == true) ||
-			   ((x < prevx) &&
-			    (x > nextx) &&
-			    (y > S2W_Y_LIMIT))) {
-				prevx = nextx;
-				barrier[1] = true;
-				if ((x < prevx) &&
-				    (y > S2W_Y_LIMIT)) {
-					if (x < S2W_X_FINAL) {
-						if (exec_count) {
-							pr_info(LOGTAG"DIM\n");
-							kcal_send_s2d(1);
-							exec_count = false;
-						}
-					}
-				}
-			}
-		}
-		// s2d: left->right
-		r_prevx = S2W_X_B0;
-		r_nextx = S2W_X_B3;
-		if ((r_barrier[0] == true) ||
-		   ((x > r_prevx) &&
-		    (x < r_nextx) &&
-		    (y > S2W_Y_LIMIT))) {
-			r_prevx = r_nextx;
-			r_nextx = S2W_X_B4;
-			r_barrier[0] = true;
-			if ((r_barrier[1] == true) ||
-			   ((x > r_prevx) &&
-			    (x < r_nextx) &&
-			    (y > S2W_Y_LIMIT))) {
-				r_prevx = r_nextx;
-				r_barrier[1] = true;
-				if ((x > r_prevx) &&
-				    (y > S2W_Y_LIMIT)) {
-					if (x > S2W_X_B5) {
-						if (exec_count) {
-							pr_info(LOGTAG"BRIGHT\n");
-							kcal_send_s2d(2);
+							pr_info(LOGTAG"EXEC_COUNT\n");
+							if (s2d_enabled)
+								kcal_send_s2d(2);
+							else
+								sweep2wake_pwrtrigger();
 							exec_count = false;
 						}
 					}
@@ -306,13 +209,6 @@ static void s2w_input_callback(struct work_struct *unused) {
 
 static void s2w_input_event(struct input_handle *handle, unsigned int type,
 				unsigned int code, int value) {
-#if S2W_DEBUG
-	pr_info("sweep2wake: code: %s|%u, val: %i\n",
-		((code==ABS_MT_POSITION_X) ? "X" :
-		(code==ABS_MT_POSITION_Y) ? "Y" :
-		(code==ABS_MT_TRACKING_ID) ? "ID" :
-		"undef"), code, value);
-#endif
 	if (code == ABS_MT_SLOT) {
 		sweep2wake_reset();
 		return;
@@ -399,24 +295,6 @@ static struct input_handler s2w_input_handler = {
 	.id_table	= s2w_ids,
 };
 
-#ifndef CONFIG_HAS_EARLYSUSPEND
-static int lcd_notifier_callback(struct notifier_block *this,
-				unsigned long event, void *data)
-{
-	switch (event) {
-	case LCD_EVENT_ON_END:
-		scr_suspended = false;
-		break;
-	case LCD_EVENT_OFF_END:
-		scr_suspended = true;
-		break;
-	default:
-		break;
-	}
-
-	return 0;
-}
-#else
 static void s2w_early_suspend(struct early_suspend *h) {
 	scr_suspended = true;
 }
@@ -430,7 +308,6 @@ static struct early_suspend s2w_early_suspend_handler = {
 	.suspend = s2w_early_suspend,
 	.resume = s2w_late_resume,
 };
-#endif
 
 /*
  * SYSFS stuff below here
@@ -480,26 +357,6 @@ static ssize_t sweep2dim_dump(struct device *dev,
 
 static DEVICE_ATTR(sweep2dim, (S_IWUSR|S_IRUGO),
 	sweep2dim_show, sweep2dim_dump);
-
-static ssize_t s2w_version_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
-{
-	size_t count = 0;
-
-	count += sprintf(buf, "%s\n", DRIVER_VERSION);
-
-	return count;
-}
-
-static ssize_t s2w_version_dump(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
-{
-	return count;
-}
-
-static DEVICE_ATTR(sweep2wake_version, (S_IWUSR|S_IRUGO),
-	s2w_version_show, s2w_version_dump);
-
 /*
  * INIT / EXIT stuff below here
  */
@@ -558,10 +415,6 @@ static int __init sweep2wake_init(void)
 	if (rc) {
 		pr_warn("%s: sysfs_create_file failed for sweep2wake\n", __func__);
 	}
-	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2wake_version.attr);
-	if (rc) {
-		pr_warn("%s: sysfs_create_file failed for sweep2wake_version\n", __func__);
-	}
 	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2dim.attr);
 	if (rc) {
 		pr_warn("%s: sysfs_create_file failed for sweep2dim\n", __func__);
@@ -579,9 +432,6 @@ static void __exit sweep2wake_exit(void)
 {
 #ifndef ANDROID_TOUCH_DECLARED
 	kobject_del(android_touch_kobj);
-#endif
-#ifndef CONFIG_HAS_EARLYSUSPEND
-	lcd_unregister_client(&s2w_lcd_notif);
 #endif
 	input_unregister_handler(&s2w_input_handler);
 	destroy_workqueue(s2w_input_wq);
