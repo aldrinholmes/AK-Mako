@@ -61,6 +61,10 @@ static int is_width_major;
 static int is_width_minor;
 
 static int dt2w_enabled;
+static int curr_resume_state;
+
+static unsigned int pending;
+static unsigned int pending_status;
 
 #define LGE_TOUCH_ATTR(_name, _mode, _show, _store)               \
 	struct lge_touch_attribute lge_touch_attr_##_name =       \
@@ -972,7 +976,7 @@ static void touch_work_func(struct work_struct *work)
 	}
 
 #ifdef CONFIG_DOUBLETAP_WAKE
-	if (ts->curr_resume_state == 0 && dt2w_enabled)
+	if ((!curr_resume_state) && dt2w_enabled)
 		touch_input_dt_wake(ts);
 	else
 #endif
@@ -1068,7 +1072,7 @@ static void touch_fw_upgrade_func(struct work_struct *work_fw_upgrade)
 	if (touch_device_func->fw_upgrade(ts->client, ts->fw_upgrade.fw_path) < 0) {
 		TOUCH_ERR_MSG("Firmware upgrade was failed\n");
 
-		if (ts->curr_resume_state)
+		if (curr_resume_state)
 			if (ts->pdata->role->operation_mode == INTERRUPT_MODE)
 				enable_irq(ts->client->irq);
 
@@ -1079,7 +1083,7 @@ static void touch_fw_upgrade_func(struct work_struct *work_fw_upgrade)
 	do_gettimeofday(&t_debug[TIME_FW_UPGRADE_END]);
 #endif
 
-	if (!ts->curr_resume_state) {
+	if (!curr_resume_state) {
 		touch_power_cntl(ts, POWER_OFF);
 	}
 	else {
@@ -1767,7 +1771,11 @@ static ssize_t store_dt_wake_enabled(struct device *dev,
 	if (value < 0 || value > 1)
 		return -EINVAL;
 
-	dt2w_enabled = value;
+	if (!curr_resume_state) {
+		pending_status = value;
+		pending = 1;
+	} else
+		dt2w_enabled = value;
 
 	return count;
 }
@@ -1903,7 +1911,7 @@ static void touch_work_charger(struct work_struct *work)
 
 	TOUCH_INFO_MSG("CHARGER = %d\n", ts->charger_type);
 
-	if (ts->curr_resume_state)
+	if (curr_resume_state)
 		touch_device_func->ic_ctrl(ts->client,
 					IC_CTRL_CHARGER, ts->charger_type);
 }
@@ -2000,7 +2008,7 @@ static int touch_probe(struct i2c_client *client,
 	}
 
 	atomic_set(&ts->device_init, 0);
-	ts->curr_resume_state = 1;
+	curr_resume_state = 1;
 
 	/* Power on */
 	if (touch_power_cntl(ts, POWER_ON) < 0)
@@ -2136,7 +2144,7 @@ static int touch_probe(struct i2c_client *client,
 #ifdef CONFIG_DOUBLETAP_WAKE
 	mutex_init(&ts->dt_wake.lock);
 	dt2w_enabled = 0;
-	ts->dt_wake.pending_status = 0;
+	pending_status = 0;
 	ts->dt_wake.hits = 0;
 	ts->dt_wake.time = 0;
 	ts->dt_wake.touch = 0;
@@ -2253,8 +2261,8 @@ static void touch_power_on(struct lge_touch_data *ts)
 	if (unlikely(touch_debug_mask & DEBUG_TRACE))
 		TOUCH_DEBUG_MSG("\n");
 
-	ts->curr_resume_state = 1;
-	TOUCH_DEBUG_MSG("Power on. Resume state %u\n", ts->curr_resume_state);
+	curr_resume_state = 1;
+	TOUCH_DEBUG_MSG("Power on. Resume state %u\n", curr_resume_state);
 	if (ts->fw_upgrade.is_downloading == UNDER_DOWNLOADING) {
 		TOUCH_INFO_MSG("late_resume is not executed\n");
 		return;
@@ -2292,9 +2300,9 @@ static void touch_power_on(struct lge_touch_data *ts)
 
 
 #ifdef CONFIG_DOUBLETAP_WAKE
-	if (ts->dt_wake.pending) {
-		dt2w_enabled = ts->dt_wake.pending_status;
-		ts->dt_wake.pending = 0;
+	if (pending) {
+		dt2w_enabled = pending_status;
+		pending = 0;
 	}
 #endif
 }
@@ -2304,8 +2312,8 @@ static void touch_power_off(struct lge_touch_data *ts)
 	if (unlikely(touch_debug_mask & DEBUG_TRACE))
 		TOUCH_DEBUG_MSG("\n");
 
-	ts->curr_resume_state = 0;
-	TOUCH_DEBUG_MSG("Power off. Resume state %u\n", ts->curr_resume_state);
+	curr_resume_state = 0;
+	TOUCH_DEBUG_MSG("Power off. Resume state %u\n", curr_resume_state);
 	if (ts->fw_upgrade.is_downloading == UNDER_DOWNLOADING) {
 		TOUCH_INFO_MSG("early_suspend is not executed\n");
 		return;
