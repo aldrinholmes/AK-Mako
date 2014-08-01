@@ -61,6 +61,7 @@ static int is_width_major;
 static int is_width_minor;
 
 static int dt2w_enabled;
+static int dt2w_feather = 200;
 static int curr_resume_state;
 
 static unsigned int pending;
@@ -784,6 +785,25 @@ static inline int touch_within_limits(struct lge_touch_data *ts, int id)
 		ts->ts_data.curr_data[id].y_position < ts->pdata->caps->lcd_y + dy);
 }
 
+static unsigned int calc_ts_feather(struct lge_touch_data *ts, int coord, int id)
+{
+	int ret;
+
+	if (coord < 0 || coord > 1)
+		return -EINVAL;
+
+	if (coord)
+		ret = ts->ts_data.curr_data[id].x_position - ts->ts_data.curr_data[id].x_position_pre;
+	else
+		ret = ts->ts_data.curr_data[id].y_position - ts->ts_data.curr_data[id].y_position_pre;
+
+	if (ret < 0)
+		ret = ret * (-1);
+
+	TOUCH_DEBUG_MSG("CALC_COORD: %d\n", ret);
+	return ret;
+}
+
 static inline void touch_check_dt_wake(struct lge_touch_data *ts, int id)
 {
 	unsigned long diff_time;
@@ -794,10 +814,42 @@ static inline void touch_check_dt_wake(struct lge_touch_data *ts, int id)
 			diff_time, ts->dt_wake.hits,
 			ts->ts_data.curr_data[id].x_position,
 			ts->ts_data.curr_data[id].y_position, id);
-	/* Out of boundary. Reset hits and return */
-	if (!touch_within_limits(ts, id)) {
-		TOUCH_DEBUG_MSG("Out of boundary\n");
-		goto reset;
+
+	/* Check gesture profiles */
+
+	/* 1 - Center */
+	if (dt2w_enabled == 1) {
+		if (!touch_within_limits(ts, id)) {
+			TOUCH_DEBUG_MSG("Out of boundary\n");
+			goto reset;
+		}
+
+	/* 2 - Full */
+	} else if (dt2w_enabled == 2) {
+		if (!((calc_ts_feather(ts, 0, id) < dt2w_feather) && (calc_ts_feather(ts, 1, id) < dt2w_feather))) {
+				goto reset;
+				return;
+		}
+
+	/* 3 - Bottom Half */
+	} else if (dt2w_enabled == 3) {
+		if (ts->ts_data.curr_data[id].y_position > 1280) {
+			if (!((calc_ts_feather(ts, 0, id) < dt2w_feather) && (calc_ts_feather(ts, 1, id) < dt2w_feather))) {
+				goto reset;
+				return;
+			}
+		} else
+			return;
+
+	/* 4 - Upper Half */
+	} else if (dt2w_enabled == 4) {
+		if (ts->ts_data.curr_data[id].y_position < 1280) {
+			if (!((calc_ts_feather(ts, 0, id) < dt2w_feather) && (calc_ts_feather(ts, 1, id) < dt2w_feather))) {
+				goto reset;
+				return;
+			}
+		} else
+			return;
 	}
 
 	/* Timeout. Reset hits and return */
@@ -819,13 +871,12 @@ static inline void touch_check_dt_wake(struct lge_touch_data *ts, int id)
 		/* Touch released. Increase hits */
 		TOUCH_DEBUG_MSG("Touch released. Increase hits\n");
 		ts->dt_wake.hits++;
-
 		ts->ts_data.curr_data[id].state = 0;
 	}
 
 	if (ts->dt_wake.hits < 2)
-		return;
-	
+			return;
+
 	/* Double tap detected try to resume */
 	TOUCH_INFO_MSG("Double tap detected try to resume\n");
 
@@ -943,6 +994,10 @@ static void touch_work_func(struct work_struct *work)
 #endif
 	if (unlikely(touch_debug_mask & DEBUG_TRACE))
 		TOUCH_DEBUG_MSG("\n");
+
+	/* Log previous coordinates */
+	ts->ts_data.curr_data[0].x_position_pre = ts->ts_data.curr_data[0].x_position;
+	ts->ts_data.curr_data[0].y_position_pre = ts->ts_data.curr_data[0].y_position;
 
 	ret = touch_device_func->data(ts->client, ts->ts_data.curr_data,
 		&ts->ts_data.curr_button, &ts->ts_data.total_num);
@@ -1768,7 +1823,7 @@ static ssize_t store_dt_wake_enabled(struct device *dev,
 	int ret;
 
 	ret = sscanf(buf, "%u", &value);
-	if (value < 0 || value > 1)
+	if (value < 0 || value > 4)
 		return -EINVAL;
 
 	if (!curr_resume_state) {
@@ -1782,6 +1837,34 @@ static ssize_t store_dt_wake_enabled(struct device *dev,
 
 static DEVICE_ATTR(doubletap2wake, (S_IWUSR|S_IRUGO),
 	show_dt_wake_enabled, store_dt_wake_enabled);
+
+static ssize_t show_dt_wake_feather(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	int ret = 0;
+
+	ret = sprintf(buf, "%u\n", dt2w_feather);
+
+	return ret;
+}
+
+static ssize_t store_dt_wake_feather(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int value;
+	int ret;
+
+	ret = sscanf(buf, "%u", &value);
+	if (value < 50 || value > 2560)
+		return -EINVAL;
+
+	dt2w_feather = value;
+
+	return count;
+}
+
+static DEVICE_ATTR(doubletap2wake_feather, (S_IWUSR|S_IRUGO),
+	show_dt_wake_feather, store_dt_wake_feather);
 #endif
 
 static LGE_TOUCH_ATTR(platform_data, S_IRUGO | S_IWUSR, show_platform_data, NULL);
@@ -2471,6 +2554,10 @@ int touch_driver_register(struct touch_device_driver* driver)
 	rc = sysfs_create_file(android_touch_kobj, &dev_attr_doubletap2wake.attr);
 	if (rc) {
 		pr_warn("%s: sysfs_create_file failed for doubletap2wake\n", __func__);
+	}
+	rc = sysfs_create_file(android_touch_kobj, &dev_attr_doubletap2wake_feather.attr);
+	if (rc) {
+		pr_warn("%s: sysfs_create_file failed for doubletap2wake_feather\n", __func__);
 	}
 
 	return 0;
