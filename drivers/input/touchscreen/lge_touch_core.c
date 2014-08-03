@@ -133,7 +133,6 @@ int touch_i2c_read(struct i2c_client *client, u8 reg, int len, u8 *buf)
 	int i = 0;
 
 #define LGETOUCH_I2C_RETRY 10
-	int retry = 0;
 	struct i2c_msg msgs[] = {
 		{
 			.addr = client->addr,
