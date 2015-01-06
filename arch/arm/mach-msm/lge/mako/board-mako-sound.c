@@ -80,14 +80,14 @@ int amp_enable(int on_state)
 	switch (on_state) {
 	case 0:
 		err = gpio_direction_output(MSM_AMP_EN, 0);
-		printk(KERN_INFO "%s: AMP_EN is set to 0\n", __func__);
+		//printk(KERN_INFO "%s: AMP_EN is set to 0\n", __func__);
 		break;
 	case 1:
 		err = gpio_direction_output(MSM_AMP_EN, 1);
-		printk(KERN_INFO "%s: AMP_EN is set to 1\n", __func__);
+		//printk(KERN_INFO "%s: AMP_EN is set to 1\n", __func__);
 		break;
 	case 2:
-		printk(KERN_INFO "%s: amp enable bypass(%d)\n", __func__, on_state);
+		//printk(KERN_INFO "%s: amp enable bypass(%d)\n", __func__, on_state);
 		err = 0;
 		break;
 
