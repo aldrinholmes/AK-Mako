@@ -11,16 +11,16 @@ clear
 # Resources
 THREAD="-j$(grep -c ^processor /proc/cpuinfo)"
 KERNEL="zImage"
-DEFCONFIG="ah_mako_defconfig"
+DEFCONFIG="ak_mako_defconfig"
 
 # Kernel Details
-BASE_AH_VER="AH"
-VER=".000.MAKO.AOSP"
-AH_VER="$BASE_AH_VER$VER"
+BASE_AK_VER="AK"
+VER=".R0.MAKO"
+AK_VER="$BASE_AK_VER$VER"
 
 # Vars
-export LOCALVERSION=~`echo $AH_VER`
-export CROSS_COMPILE=${HOME}/android/Toolchains/sm-arm-eabi-4.9/bin/arm-eabi-
+export LOCALVERSION=~`echo $AK_VER`
+export CROSS_COMPILE=${HOME}/android/AK-Kernel/AK-Linaro/arm-cortex_a15-linux-gnueabihf-linaro_4.9.3-2015.02/bin/arm-cortex_a15-linux-gnueabihf-
 export ARCH=arm
 export SUBARCH=arm
 export KBUILD_BUILD_USER=CallMeAldy
@@ -28,11 +28,11 @@ export KBUILD_BUILD_HOST=AH-Hub
 
 # Paths
 KERNEL_DIR=`pwd`
-REPACK_DIR="${HOME}/android/AH-Kernel/AH-Mako-AnyKernel2"
-PATCH_DIR="${HOME}/android/AH-Kernel/AH-Mako-AnyKernel2/patch"
-MODULES_DIR="${HOME}/android/AH-Kernel/AH-Mako-AnyKernel2/modules"
-ZIP_MOVE="${HOME}/android//AH-Kernel/AH-Releases"
-ZIMAGE_DIR="${HOME}/android/AH-Kernel/AH-Mako/arch/arm/boot"
+REPACK_DIR="${HOME}/android/AK-Kernel/AK-Mako-AnyKernel2"
+PATCH_DIR="${HOME}/android/AK-Kernel/AK-Mako-AnyKernel2/patch"
+MODULES_DIR="${HOME}/android/AK-Kernel/AK-Mako-AnyKernel2/modules"
+ZIP_MOVE="${HOME}/android//AK-Kernel/AK-Releases"
+ZIMAGE_DIR="${HOME}/android/AK-Kernel/AK-Mako/arch/arm/boot"
 
 # Functions
 function clean_all {
@@ -60,8 +60,8 @@ function make_modules {
 
 function make_zip {
 		cd $REPACK_DIR
-		zip -r9 `echo $AH_VER`.zip *
-		mv  `echo $AH_VER`.zip $ZIP_MOVE
+		zip -r9 `echo $AK_VER`.zip *
+		mv  `echo $AK_VER`.zip $ZIP_MOVE
 		cd $KERNEL_DIR
 }
 
@@ -69,17 +69,17 @@ function make_zip {
 DATE_START=$(date +"%s")
 
 echo -e "${green}"
-echo "AH Kernel Creation Script:"
+echo "AK Kernel Creation Script:"
 
 echo "---------------"
 echo "Kernel Version:"
 echo "---------------"
 
-echo -e "${red}"; echo -e "${blink_red}"; echo "$AH_VER"; echo -e "${restore}";
+echo -e "${red}"; echo -e "${blink_red}"; echo "$AK_VER"; echo -e "${restore}";
 
 echo -e "${green}"
 echo "-----------------"
-echo "Making AH Kernel:"
+echo "Making AK Kernel:"
 echo "-----------------"
 echo -e "${restore}"
 
