@@ -20,7 +20,7 @@ AK_VER="$BASE_AK_VER$VER"
 
 # Vars
 export LOCALVERSION=~`echo $AK_VER`
-export CROSS_COMPILE=${HOME}/android/AK-Kernel/AK-Linaro/arm-cortex_a15-linux-gnueabihf-linaro_4.9.3-2015.02/bin/arm-cortex_a15-linux-gnueabihf-
+export CROSS_COMPILE=${HOME}/android/AK-Kernel/Toolchains/uber-tc-4.9/bin/arm-eabi-
 export ARCH=arm
 export SUBARCH=arm
 export KBUILD_BUILD_USER=CallMeAldy
@@ -31,7 +31,7 @@ KERNEL_DIR=`pwd`
 REPACK_DIR="${HOME}/android/AK-Kernel/AK-Mako-AnyKernel2"
 PATCH_DIR="${HOME}/android/AK-Kernel/AK-Mako-AnyKernel2/patch"
 MODULES_DIR="${HOME}/android/AK-Kernel/AK-Mako-AnyKernel2/modules"
-ZIP_MOVE="${HOME}/android//AK-Kernel/AK-Releases"
+ZIP_MOVE="${HOME}/android/AK-Kernel/AK-Releases"
 ZIMAGE_DIR="${HOME}/android/AK-Kernel/AK-Mako/arch/arm/boot"
 
 # Functions
