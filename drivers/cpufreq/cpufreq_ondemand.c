@@ -32,13 +32,15 @@
  */
 
 #define DEF_FREQUENCY_UP_THRESHOLD		(80)
+#define DEF_FREQUENCY_DOWN_THRESHOLD		(5)
 #define DEF_SAMPLING_DOWN_FACTOR		(1)
 #define MAX_SAMPLING_DOWN_FACTOR		(100000)
 #define MICRO_FREQUENCY_UP_THRESHOLD		(95)
 #define MICRO_FREQUENCY_MIN_SAMPLE_RATE		(10000)
 #define MIN_FREQUENCY_UP_THRESHOLD		(11)
 #define MAX_FREQUENCY_UP_THRESHOLD		(100)
-#define DEF_DOWN_THRESHOLD			(5)
+#define MIN_FREQUENCY_DOWN_THRESHOLD		(1)
+#define MAX_FREQUENCY_DOWN_THRESHOLD		(90)
 #define TOUCH_LOAD				(65)
 #define TOUCH_LOAD_THRESHOLD			(10)
 #define TOUCH_LOAD_DURATION			(1100)
@@ -124,6 +126,7 @@ static DEFINE_MUTEX(dbs_mutex);
 static struct dbs_tuners {
 	unsigned int sampling_rate;
 	unsigned int up_threshold;
+	unsigned int down_threshold;
 	unsigned int ignore_nice;
 	unsigned int sampling_down_factor;
 	int          powersave_bias;
@@ -134,6 +137,7 @@ static struct dbs_tuners {
 
 } dbs_tuners_ins = {
 	.up_threshold = DEF_FREQUENCY_UP_THRESHOLD,
+	.down_threshold = DEF_FREQUENCY_DOWN_THRESHOLD,
 	.sampling_down_factor = DEF_SAMPLING_DOWN_FACTOR,
 	.ignore_nice = 0,
 	.powersave_bias = 0,
@@ -292,6 +296,7 @@ static ssize_t show_##file_name						\
 show_one(sampling_rate, sampling_rate);
 show_one(io_is_busy, io_is_busy);
 show_one(up_threshold, up_threshold);
+show_one(down_threshold, down_threshold);
 show_one(sampling_down_factor, sampling_down_factor);
 show_one(ignore_nice_load, ignore_nice);
 show_one(touch_load, touch_load);
@@ -408,6 +413,22 @@ static ssize_t store_up_threshold(struct kobject *a, struct attribute *b,
 	}
 
 	dbs_tuners_ins.up_threshold = input;
+	return count;
+}
+
+static ssize_t store_down_threshold(struct kobject *a, struct attribute *b,
+				    const char *buf, size_t count)
+{
+	unsigned int input;
+	int ret;
+	ret = sscanf(buf, "%u", &input);
+
+	if (ret != 1 || input > MAX_FREQUENCY_DOWN_THRESHOLD ||
+			input < MIN_FREQUENCY_DOWN_THRESHOLD) {
+		return -EINVAL;
+	}
+
+	dbs_tuners_ins.down_threshold = input;
 	return count;
 }
 
@@ -618,6 +639,7 @@ static ssize_t store_touch_load_duration(struct kobject *a, struct attribute *b,
 define_one_global_rw(sampling_rate);
 define_one_global_rw(io_is_busy);
 define_one_global_rw(up_threshold);
+define_one_global_rw(down_threshold);
 define_one_global_rw(sampling_down_factor);
 define_one_global_rw(ignore_nice_load);
 define_one_global_rw(powersave_bias);
@@ -629,6 +651,7 @@ static struct attribute *dbs_attributes[] = {
 	&sampling_rate_min.attr,
 	&sampling_rate.attr,
 	&up_threshold.attr,
+	&down_threshold.attr,
 	&sampling_down_factor.attr,
 	&ignore_nice_load.attr,
 	&powersave_bias.attr,
@@ -782,7 +805,7 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 			this_dbs_info->rate_mult =
 				dbs_tuners_ins.sampling_down_factor;
 		dbs_freq_increase(policy, policy->max);
-	} else if (max_load < DEF_DOWN_THRESHOLD) {
+	} else if (max_load < dbs_tuners_ins.down_threshold) {
 		/* No longer fully busy, reset rate_mult */
 		this_dbs_info->rate_mult = 1;
 
@@ -1079,6 +1102,7 @@ static int __init cpufreq_gov_dbs_init(void)
 	if (idle_time != -1ULL) {
 		/* Idle micro accounting is supported. Use finer thresholds */
 		dbs_tuners_ins.up_threshold = MICRO_FREQUENCY_UP_THRESHOLD;
+		dbs_tuners_ins.down_threshold = DEF_FREQUENCY_DOWN_THRESHOLD;
 
 		/*
 		 * In nohz/micro accounting case we set the minimum frequency
