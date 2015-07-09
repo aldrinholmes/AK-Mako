@@ -15,7 +15,7 @@ DEFCONFIG="ak_mako_defconfig"
 
 # Kernel Details
 BASE_AK_VER="AK"
-VER=".R2.MAKO"
+VER=".R3.MAKO"
 AK_VER="$BASE_AK_VER$VER"
 
 # Vars
