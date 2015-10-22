@@ -15,7 +15,7 @@ DEFCONFIG="ak_mako_defconfig"
 
 # Kernel Details
 BASE_AK_VER="AK"
-VER=".R3.MAKO.CM"
+VER=".Mx.AOSP"
 AK_VER="$BASE_AK_VER$VER"
 
 # Vars
@@ -24,7 +24,7 @@ export CROSS_COMPILE=${HOME}/android/AK-Kernel/Toolchains/uber-arm-eabi-4.9/bin/
 export ARCH=arm
 export SUBARCH=arm
 export KBUILD_BUILD_USER=CallMeAldy
-export KBUILD_BUILD_HOST=AH-Hub
+export KBUILD_BUILD_HOST=Codelax
 
 # Paths
 KERNEL_DIR=`pwd`
@@ -32,7 +32,7 @@ REPACK_DIR="${HOME}/android/AK-Kernel/AK-Mako-AnyKernel2"
 PATCH_DIR="${HOME}/android/AK-Kernel/AK-Mako-AnyKernel2/patch"
 MODULES_DIR="${HOME}/android/AK-Kernel/AK-Mako-AnyKernel2/modules"
 ZIP_MOVE="${HOME}/android/AK-Kernel/AK-Releases"
-ZIMAGE_DIR="${HOME}/android/AK-Kernel/AK-Mako/arch/arm/boot"
+ZIMAGE_DIR="${HOME}/android/AK-Kernel/AK-Mako-M/arch/arm/boot"
 
 # Functions
 function clean_all {
