@@ -136,7 +136,6 @@ int load_565rle_image(char *filename, bool bf_supported)
 				line_pos = 0;
 			}
 		}
->>>>>>> b2fa004... msm_fb: Import logo changes from Sony.
 		ptr += 2;
 		count -= 4;
 	}
