@@ -15,7 +15,7 @@ DEFCONFIG="ak_mako_defconfig"
 
 # Kernel Details
 BASE_AK_VER="AK"
-VER=".M1.AOSP"
+VER=".M2.AOSP"
 AK_VER="$BASE_AK_VER$VER"
 
 # Vars
