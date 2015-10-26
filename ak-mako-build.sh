@@ -20,7 +20,7 @@ AK_VER="$BASE_AK_VER$VER"
 
 # Vars
 export LOCALVERSION=~`echo $AK_VER`
-export CROSS_COMPILE=${HOME}/android/AK-Kernel/Toolchains/uber-arm-eabi-4.9/bin/arm-eabi-
+export CROSS_COMPILE=${HOME}/android/AK-Kernel/Toolchains/uber-arm-eabi-5.2/bin/arm-eabi-
 export ARCH=arm
 export SUBARCH=arm
 export KBUILD_BUILD_USER=CallMeAldy
